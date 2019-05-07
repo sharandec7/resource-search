@@ -1,0 +1,176 @@
+import com.sun.org.apache.regexp.internal.RE;
+
+import java.io.IOException;
+import java.util.*;
+
+public class Allocation {
+
+    public Queue<Resource> allocate(Queue<Resource> resources, Map<String, Hexagon> hexagonMap, double MLT) throws IOException {
+
+        int totalResource = resources.size();
+//        int cab_count = agentList.size();
+        int processedResources = 0;
+        int K = 4;
+
+        while (processedResources < totalResource) {
+
+//            System.out.println("count: "+count + " resource size: "+resources.size());
+            Resource resource = resources.poll();
+//            System.out.println("resource hex: " + resource.hexagon_id);
+
+            processedResources++;
+
+            if (resource.wait_time >= MLT) {
+                dropResource(resource);
+                continue; // resource dropped from queue
+            }
+
+            double resourceLat = resource.pickup_location.latitude;
+            double resourceLong = resource.pickup_location.longitude;
+
+//            System.out.println();
+            if (!(resourceLat != 0.0 && resourceLong != 0.0)) {
+                Statistics.totalInvalidResources += 1;
+                continue;
+            }
+
+            int free_cabs = 0;
+
+//            System.out.println(resourceLat + " " + resourceLong);
+
+            if (hexagonMap.get(resource.hexagon_id) == null) {
+//                System.out.println(resource.hexagon_id + " : " + hexagonMap.get(resource.hexagon_id));
+                Statistics.totalInvalidResources += 1;
+                continue;
+            }
+
+            Hexagon resourceHexagon = hexagonMap.get(resource.hexagon_id);
+            List<List<String>> kRingHexagons = resourceHexagon.getNeighbours();
+            List<List<Agent>> kRingAgents = new ArrayList<>();
+
+
+            int numberOfAgentsAroundResource = 0;
+
+            // include the agents from the hexagon where resource popped up
+            kRingAgents.add(0, (hexagonMap.get(resource.hexagon_id).agentsPresent));
+            numberOfAgentsAroundResource += kRingAgents.get(0).size();
+
+            // add surrounding hexagon agents
+            for (int index = 1; index <= 4; index++) {
+                for (String hexId : kRingHexagons.get(index - 1)) {
+                    if (hexagonMap.get(hexId) != null) {
+                        kRingAgents.add(index, (hexagonMap.get(hexId).agentsPresent));
+                        numberOfAgentsAroundResource += kRingAgents.get(index).size();
+                    } else {
+                        Statistics.outOfBoundsResources += 1;
+                    }
+                }
+            }
+
+//            System.out.println("Number of agents in each Ring");
+//            for (List<Agent> agents : kRingAgents) {
+//                System.out.print(agents.size() + " : ");
+//            }
+
+            int currentRing = 0;
+            double timeToPickup = 2147483647;
+            Agent closestAgent = null;
+
+            while (currentRing <= K) {
+
+                for (Agent agent : kRingAgents.get(currentRing)) {
+
+                    if (agent.status == 1) continue;
+
+                    double agentLat = agent.currentLocation.latitude;
+                    double agentLong = agent.currentLocation.longitude;
+
+                    if (!(agentLat != 0.0 && agentLong != 0.0)) {
+                        System.out.println("Agent location undefined");
+                        continue;
+                    }
+
+                    if (agent.status != 1) {
+
+                        double currPickupTime = Graphhopper.time(resourceLat, resourceLong, agentLat, agentLong) / Statistics.ONE_MINUTE_IN_MILLIS;
+
+                        // finding closest agent
+                        if (currPickupTime < timeToPickup) {
+                            timeToPickup = currPickupTime;
+                            closestAgent = agent;
+                        }
+                    }
+                }
+
+
+                // check if agent can be assigned and assign agent and stop checking
+                if (closestAgent != null && (timeToPickup + resource.wait_time) <= MLT) {
+
+//                    System.out.println(resource.drop_location.latitude);
+                    assignAgentToResource(closestAgent, resource, timeToPickup);
+                    break;
+                }
+                // if not assigned, check the next ring of hexagons
+                currentRing++;
+            }
+            // if resource didn't get allocated even after K rounds then add it in waiting
+            if (!resource.assigned) {
+
+                // new resource, then add to waiting count
+                if (resource.wait_time == 0) Statistics.totalWaitingResources += 1;
+                resources.add(resource);
+                resource.wait_time += Statistics.incrementalTimeWindow;
+                Statistics.accumulatedWaitTime += Statistics.incrementalTimeWindow;
+//                System.out.println("wait time: " + r.accumulatedWaitTime);
+            }
+        }
+        printStats();
+        return resources;
+    }
+
+    private void assignAgentToResource(Agent closestAgent, Resource resource, double timeToPickup) throws IOException {
+
+        closestAgent.status = 1;
+        resource.assigned = true;
+
+//        System.out.println("Assigned agent:" + closestAgent.agentId + " for resource at: " + resource.hexagon_id);
+
+//        Statistics.accumulatedWaitTime += resource.wait_time;
+//        Statistics.accumulatedSearchTime += closestAgent.totalSearchingTime;
+//        closestAgent.totalSearchingTime = 0;
+
+        String destination_hex_id = Utilities.getHexFromGeo(resource.drop_location.latitude, resource.drop_location.longitude);
+
+        double journeyTime = (Math.abs(resource.drop_time.getTime() - resource.pickup_time.getTime()) / Statistics.ONE_MINUTE_IN_MILLIS) + timeToPickup;
+
+        closestAgent.setDestination(destination_hex_id, 0, journeyTime, 1);
+
+        // add to assigned list
+        Statistics.totalAssignedAgents += 1;
+
+        // remove it from waiting list
+        if (resource.wait_time > 0) Statistics.totalWaitingResources -= 1;
+
+    }
+
+    private void dropResource(Resource resource) {
+        System.out.println("Dropped cab: " + resource.hexagon_id + " because of accumulatedWaitTime: " + resource.wait_time);
+        Statistics.totalDroppedResources += 1;
+        Statistics.totalWaitingResources -= 1;
+    }
+
+    private void printStats() {
+
+        System.out.println("Total Dropped Resources: " + Statistics.totalDroppedResources);
+        System.out.println("Total Assigned Resources: " + Statistics.totalAssignedAgents);
+        System.out.println("Total Waiting Resources: " + Statistics.totalWaitingResources);
+
+        System.out.println("Total Invalid Resources: " + Statistics.totalInvalidResources);
+//        System.out.println("Total Out of Bounds Resources: " + Statistics.outOfBoundsResources);
+
+        System.out.println("Total Wait Time: " + Statistics.accumulatedWaitTime);
+        System.out.println("Total Search Time: " + Statistics.accumulatedSearchTime);
+    }
+
+
+}
