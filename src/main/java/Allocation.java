@@ -12,6 +12,8 @@ public class Allocation {
         int processedResources = 0;
         int K = 4;
 
+        System.out.println("Number of Free Cabs: " + AgentGeneration.freeAgentList.size());
+
         while (processedResources < totalResource) {
 
 //            System.out.println("count: "+count + " resource size: "+resources.size());
@@ -57,14 +59,16 @@ public class Allocation {
 
             // add surrounding hexagon agents
             for (int index = 1; index <= 4; index++) {
+                List<Agent> agentsAtK = new ArrayList<>();
                 for (String hexId : kRingHexagons.get(index - 1)) {
                     if (hexagonMap.get(hexId) != null) {
-                        kRingAgents.add(index, (hexagonMap.get(hexId).agentsPresent));
-                        numberOfAgentsAroundResource += kRingAgents.get(index).size();
+                        agentsAtK.addAll(hexagonMap.get(hexId).agentsPresent);
+                        numberOfAgentsAroundResource += hexagonMap.get(hexId).agentsPresent.size();
                     } else {
                         Statistics.outOfBoundsResources += 1;
                     }
                 }
+                kRingAgents.add(index, agentsAtK);
             }
 
 //            System.out.println("Number of agents in each Ring");
@@ -80,7 +84,11 @@ public class Allocation {
 
                 for (Agent agent : kRingAgents.get(currentRing)) {
 
-                    if (agent.status == 1) continue;
+                    int size = kRingAgents.get(currentRing).size();
+
+                    if (agent.status == 1) {
+                        continue;
+                    }
 
                     double agentLat = agent.currentLocation.latitude;
                     double agentLong = agent.currentLocation.longitude;
@@ -106,7 +114,12 @@ public class Allocation {
                 // check if agent can be assigned and assign agent and stop checking
                 if (closestAgent != null && (timeToPickup + resource.wait_time) <= MLT) {
 
-//                    System.out.println(resource.drop_location.latitude);
+//                    for (Agent a : Main.hexagonMap.get(resource.hexagon_id).agentsPresent) {
+//                        System.out.println("Agent: " + a.agentId + " status: " + a.status);
+//                    }
+//
+//                    System.out.println(closestAgent.agentId + " : " + closestAgent.status);
+
                     assignAgentToResource(closestAgent, resource, timeToPickup);
                     break;
                 }
@@ -148,13 +161,18 @@ public class Allocation {
         // add to assigned list
         Statistics.totalAssignedAgents += 1;
 
-        // remove it from waiting list
-        if (resource.wait_time > 0) Statistics.totalWaitingResources -= 1;
+        if (AgentGeneration.freeAgentList.remove(closestAgent.agentId).agentId == closestAgent.agentId) {
+//            System.out.println("Removed agent from free list: " + closestAgent.agentId + " : " + closestAgent.status + closestAgent.currentTravelTime);
+        } else {
+            System.out.println("Something went wrong: " + closestAgent.agentId + " : " + closestAgent.status);
+        }
 
+        // remove it from waiting list if it was waiting
+        if (resource.wait_time > 0) Statistics.totalWaitingResources -= 1;
     }
 
     private void dropResource(Resource resource) {
-        System.out.println("Dropped cab: " + resource.hexagon_id + " because of accumulatedWaitTime: " + resource.wait_time);
+//        System.out.println("Dropped cab: " + resource.hexagon_id + " because of accumulatedWaitTime: " + resource.wait_time);
         Statistics.totalDroppedResources += 1;
         Statistics.totalWaitingResources -= 1;
     }
@@ -165,11 +183,18 @@ public class Allocation {
         System.out.println("Total Assigned Resources: " + Statistics.totalAssignedAgents);
         System.out.println("Total Waiting Resources: " + Statistics.totalWaitingResources);
 
+        double totalResources = Statistics.totalDroppedResources + Statistics.totalAssignedAgents + Statistics.totalWaitingResources;
+
         System.out.println("Total Invalid Resources: " + Statistics.totalInvalidResources);
 //        System.out.println("Total Out of Bounds Resources: " + Statistics.outOfBoundsResources);
 
         System.out.println("Total Wait Time: " + Statistics.accumulatedWaitTime);
         System.out.println("Total Search Time: " + Statistics.accumulatedSearchTime);
+
+        System.out.println("Number of Free Cabs: " + AgentGeneration.freeAgentList.size());
+
+        System.out.println("Average Wait Time: " + (Statistics.accumulatedWaitTime / totalResources));
+        System.out.println("Average Search Time: " + (Statistics.accumulatedSearchTime / Statistics.totalAssignedAgents));
     }
 
 

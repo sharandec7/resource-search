@@ -1,8 +1,5 @@
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class AgentGeneration {
 
@@ -11,14 +8,18 @@ class AgentGeneration {
 
     private Utilities helper = new Utilities();
 
+    static Map<Integer, Agent> freeAgentList;
+
     AgentGeneration(int noOfAgents, Date start_time) {
+
         this.noOfAgents = noOfAgents;
         this.start_time = start_time;
     }
 
-    List<Agent> generateAgents(Map<String, Hexagon> hexagonMap) throws ParseException {
+    Map<Integer, Agent> generateAgents(Map<String, Hexagon> hexagonMap) throws ParseException {
 
-        List<Agent> agentList = new ArrayList<>();
+        Map<Integer, Agent> agentList = new HashMap<>(noOfAgents);
+        freeAgentList = new HashMap<>(noOfAgents);
 
         List<String> hexagonList = new ArrayList<>(hexagonMap.keySet());
 
@@ -36,8 +37,9 @@ class AgentGeneration {
 
             currentHexagon = hexagonMap.get(currentHexId);
 
-            agent = new Agent(countOfAgents-1, currentHexId, currentTimeInterval, currentHexagon.center);
-            agentList.add(agent);
+            agent = new Agent(countOfAgents - 1, currentHexId, currentTimeInterval, currentHexagon.center);
+            agentList.put(countOfAgents - 1, agent);
+            freeAgentList.put(countOfAgents - 1, agent);
             currentHexagon.agentsPresent.add(agent);
 
 //            System.out.println( "count: "+count+" i: "+i+" hexagon: " + hexagon_map.get(hexagon_id) + " assigned agent: " + agentList.get(count - 1));

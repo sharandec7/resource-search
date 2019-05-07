@@ -101,6 +101,12 @@ public class RandomNumberGenerator {
             return a[0];
         return a[indexCeil];
     }
+
+    public static int normalRandom(int max) {
+        int min = 0;
+        int randomPick = (int) (Math.random() * (max - min + 1) + min);
+        return randomPick;
+    }
 }
 
 

@@ -6,7 +6,7 @@ class SearchAlgorithm {
 
     private int[] indexNeighbourArr;
 
-    void provideSearchDirections(List<Agent> agentList, Map<String, Hexagon> hexagonMap) {
+    void provideSearchDirections(Map<Integer, Agent> agentList, Map<String, Hexagon> hexagonMap) {
 
         int[] sixNeigbourIndices = new int[6];
         for (int idx = 0; idx < 6; idx++)
@@ -18,8 +18,8 @@ class SearchAlgorithm {
 
             if (agent.status != 0) {
                 agent.updateAgentMovement();
+                continue;
             }
-
 
             String agentHexId = agent.currentHexId;
             Hexagon agentHexagon = hexagonMap.get(agentHexId);
@@ -48,6 +48,8 @@ class SearchAlgorithm {
             }
 
             int chosenIndex = RandomNumberGenerator.customizedRandom(indexNeighbourArr, expectedNumbers, adjacentHexagons);
+//            int chosenIndex = RandomNumberGenerator.normalRandom(adjacentHexagons.size() - 1);
+
             String destination_hex_id = adjacentHexagons.get(chosenIndex);
             if (hexagonMap.get(destination_hex_id) != null) {
 

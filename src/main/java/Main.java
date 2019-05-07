@@ -5,6 +5,7 @@ import java.util.*;
 public class Main {
 
     static Map<String, Hexagon> hexagonMap;
+    static Map<Integer, Agent> agentList;
 
     public static void main(String[] args) throws ParseException, IOException {
 
@@ -26,10 +27,10 @@ public class Main {
         hexagonMap = PreProcess.readHexagonsFromCSV("src/main/java/data/probability-updated.csv");
 
         // Initialize cabs & obtain list of cabs
-        int noOfCabs = 1000;
+        int noOfCabs = 5000;
         AgentGeneration agentGeneration = new AgentGeneration(noOfCabs, startTime);
 
-        List<Agent> agentList = agentGeneration.generateAgents(hexagonMap);
+        agentList = agentGeneration.generateAgents(hexagonMap);
 
 //        System.exit(0);
 

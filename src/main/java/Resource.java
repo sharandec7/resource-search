@@ -18,5 +18,6 @@ public class Resource {
         this.drop_time = drop_time;
         this.hexagon_id = hexagon_id;
         assigned = false;
+        this.wait_time = 0;
     }
 }

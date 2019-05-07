@@ -44,6 +44,8 @@ public class Agent {
             status = 0;
             teleportAgentToDestinationHex();
             destinationHexId = null;
+            AgentGeneration.freeAgentList.put(agentId, this);
+//            System.out.println("Added Agent back to Free List: " + agentId + " status:  " + status);
         }
     }
 
