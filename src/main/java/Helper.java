@@ -6,9 +6,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Utilities {
+public class Helper {
 
-    public static String getTimeStamp(Date date) throws ParseException {
+    public static String convertToClosestTimeInterval(Date date) throws ParseException {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);

@@ -6,7 +6,7 @@ class AgentGeneration {
     private double noOfAgents;
     private Date start_time;
 
-    private Utilities helper = new Utilities();
+    private Helper helper = new Helper();
 
     static Map<Integer, Agent> freeAgentList;
 
@@ -29,7 +29,7 @@ class AgentGeneration {
 
         int countOfAgents = 1, index, totalHexagons = hexagonMap.size();
 
-        String currentTimeInterval = helper.getTimeStamp(start_time);
+        String currentTimeInterval = helper.convertToClosestTimeInterval(start_time);
 
         while (countOfAgents < noOfAgents) {
 
@@ -43,7 +43,7 @@ class AgentGeneration {
             freeAgentList.put(countOfAgents - 1, agent);
             currentHexagon.agentsPresent.add(agent);
 
-//            System.out.println( "count: "+count+" i: "+i+" hexagon: " + hexagon_map.get(hexagon_id) + " assigned agent: " + agentList.get(count - 1));
+//            System.out.println( "count: "+count+" i: "+i+" hexagon: " + hexagon_map.get(hexagonId) + " assigned agent: " + agentList.get(count - 1));
             countOfAgents++;
         }
 

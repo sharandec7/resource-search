@@ -1,9 +1,7 @@
-import com.sun.org.apache.regexp.internal.RE;
-
 import java.io.IOException;
 import java.util.*;
 
-public class Allocation {
+public class AllocationFramework {
 
     public Queue<Resource> allocate(Queue<Resource> resources, Map<String, Hexagon> hexagonMap, double MLT) throws IOException {
 
@@ -16,17 +14,17 @@ public class Allocation {
 
 //            System.out.println("count: "+count + " resource size: "+resources.size());
             Resource resource = resources.poll();
-//            System.out.println("resource hex: " + resource.hexagon_id);
+//            System.out.println("resource hex: " + resource.hexagonId);
 
             processedResources++;
 
-            if (resource.wait_time >= MLT) {
+            if (resource.waitTime >= MLT) {
                 dropResource(resource);
                 continue; // resource dropped from queue
             }
 
-            double resourceLat = resource.pickup_location.latitude;
-            double resourceLong = resource.pickup_location.longitude;
+            double resourceLat = resource.pickupLocation.latitude;
+            double resourceLong = resource.pickupLocation.longitude;
 
 //            System.out.println();
             if (!(resourceLat != 0.0 && resourceLong != 0.0)) {
@@ -34,13 +32,13 @@ public class Allocation {
                 continue;
             }
 
-            if (hexagonMap.get(resource.hexagon_id) == null) {
-//                System.out.println(resource.hexagon_id + " : " + hexagonMap.get(resource.hexagon_id));
+            if (hexagonMap.get(resource.hexagonId) == null) {
+//                System.out.println(resource.hexagonId + " : " + hexagonMap.get(resource.hexagonId));
                 Statistics.totalInvalidResources += 1;
                 continue;
             }
 
-            Hexagon resourceHexagon = hexagonMap.get(resource.hexagon_id);
+            Hexagon resourceHexagon = hexagonMap.get(resource.hexagonId);
             List<List<String>> kRingHexagons = resourceHexagon.getNeighbours();
             List<List<Agent>> kRingAgents = new ArrayList<>();
 
@@ -48,7 +46,7 @@ public class Allocation {
             int numberOfAgentsAroundResource = 0;
 
             // include the agents from the hexagon where resource popped up
-            kRingAgents.add(0, (hexagonMap.get(resource.hexagon_id).agentsPresent));
+            kRingAgents.add(0, (hexagonMap.get(resource.hexagonId).agentsPresent));
             numberOfAgentsAroundResource += kRingAgents.get(0).size();
 
             // add surrounding hexagon agents
@@ -101,7 +99,7 @@ public class Allocation {
 
 
                 // check if agent can be assigned and assign agent and stop checking
-                if (closestAgent != null && (timeToPickup + resource.wait_time) <= MLT) {
+                if (closestAgent != null && (timeToPickup + resource.waitTime) <= MLT) {
 
                     assignAgentToResource(closestAgent, resource, timeToPickup);
                     break;
@@ -113,9 +111,9 @@ public class Allocation {
             if (!resource.assigned) {
 
                 // new resource, then add to waiting count
-                if (resource.wait_time == 0) Statistics.totalWaitingResources += 1;
+                if (resource.waitTime == 0) Statistics.totalWaitingResources += 1;
                 resources.add(resource);
-                resource.wait_time += Statistics.incrementalTimeWindow;
+                resource.waitTime += Statistics.incrementalTimeWindow;
                 Statistics.accumulatedWaitTime += Statistics.incrementalTimeWindow;
 //                System.out.println("wait time: " + r.accumulatedWaitTime);
             }
@@ -129,10 +127,10 @@ public class Allocation {
         closestAgent.status = 1;
         resource.assigned = true;
 
-        String destination_hex_id = Utilities.getHexFromGeo(resource.drop_location.latitude, resource.drop_location.longitude);
+        String destination_hex_id = Helper.getHexFromGeo(resource.dropLocation.latitude, resource.dropLocation.longitude);
 
-//        double journeyTime = (Math.abs(resource.drop_time.getTime() - resource.pickup_time.getTime()) / Statistics.ONE_MINUTE_IN_MILLIS) + timeToPickup;
-        double journeyTime = Graphhopper.time(resource.pickup_location.latitude, resource.pickup_location.longitude, resource.drop_location.latitude, resource.drop_location.longitude) / Statistics.ONE_MINUTE_IN_MILLIS + timeToPickup;
+//        double journeyTime = (Math.abs(resource.dropTime.getTime() - resource.pickupTime.getTime()) / Statistics.ONE_MINUTE_IN_MILLIS) + timeToPickup;
+        double journeyTime = Graphhopper.time(resource.pickupLocation.latitude, resource.pickupLocation.longitude, resource.dropLocation.latitude, resource.dropLocation.longitude) / Statistics.ONE_MINUTE_IN_MILLIS + timeToPickup;
 
 
         closestAgent.setDestination(destination_hex_id, 0, journeyTime, 1);
@@ -147,11 +145,11 @@ public class Allocation {
         }
 
         // remove it from waiting list if it was waiting
-        if (resource.wait_time > 0) Statistics.totalWaitingResources -= 1;
+        if (resource.waitTime > 0) Statistics.totalWaitingResources -= 1;
     }
 
     private void dropResource(Resource resource) {
-//        System.out.println("Dropped cab: " + resource.hexagon_id + " because of accumulatedWaitTime: " + resource.wait_time);
+//        System.out.println("Dropped cab: " + resource.hexagonId + " because of accumulatedWaitTime: " + resource.waitTime);
         Statistics.totalDroppedResources += 1;
         Statistics.totalWaitingResources -= 1;
     }

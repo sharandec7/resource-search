@@ -43,7 +43,7 @@ public class HexagonGeneration {
     static public Hexagon createHexagon(String hexagon_id, String[] metadata, Hexagon hexagonOld) throws ParseException {
 
 
-        List<List<String>> neighbors = Utilities.readNeighborsList(hexagon_id, metadata[6]);
+        List<List<String>> neighbors = Helper.readNeighborsList(hexagon_id, metadata[6]);
 //        System.out.println(metadata[5] + Objects.equals(metadata[5], "NULL"));
         int expectedCabs = Integer.parseInt((Objects.equals(metadata[5], "NULL") ? "0" : metadata[5]));
         String timestamp = metadata[4];

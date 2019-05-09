@@ -35,13 +35,11 @@ class SearchAlgorithm {
                     for (int l = 0; l < adjacentHexagons.size(); l++)
                         indexNeighbourArr[l] = l;
 
-                Map<String, Integer> expectedNumbers = new HashMap<>();
-
-                // can be updated to CLOCK TIME
+                Map<String, Integer> adjacentHexagonWeights = new HashMap<>();
                 String current_time = agentList.get(i).currentTime;
 
                 try {
-                    current_time = Utilities.getTimeStamp(Statistics.currTime);
+                    current_time = Helper.convertToClosestTimeInterval(Statistics.currTime);
                 } catch (ParseException ex) {
 
                 }
@@ -49,14 +47,13 @@ class SearchAlgorithm {
                 for (int j = 0; j < adjacentHexagons.size(); j++) {
                     String neighbour = adjacentHexagons.get(j);
                     if (hexagonMap.get(neighbour) != null && hexagonMap.get(neighbour).getWeightsByTime() != null) {
-                        expectedNumbers.put(neighbour,
+                        adjacentHexagonWeights.put(neighbour,
                                 (hexagonMap.get(neighbour).getWeightsByTime().getOrDefault(current_time, 0)) + 1);
                     } else
-                        expectedNumbers.put(neighbour, 1);
+                        adjacentHexagonWeights.put(neighbour, 1);
                 }
 
-                int chosenIndex = AdjacentHexPicker.customizedRandom(indexNeighbourArr, expectedNumbers, adjacentHexagons);
-//            int chosenIndex = AdjacentHexPicker.normalRandom(adjacentHexagons.size() - 1);
+                int chosenIndex = AdjacentHexPicker.pickTheBest(indexNeighbourArr, adjacentHexagonWeights, adjacentHexagons);
 
                 String destination_hex_id = adjacentHexagons.get(chosenIndex);
                 if (hexagonMap.get(destination_hex_id) != null) {

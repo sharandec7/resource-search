@@ -38,7 +38,7 @@ public class Main {
         Statistics.currTime = startTime;
 
         Queue<Resource> curr_res = new LinkedList<>();
-        Allocation allocator = new Allocation();
+        AllocationFramework allocator = new AllocationFramework();
         SearchAlgorithm searchAlgorithm = new SearchAlgorithm();
 
         Date s_start = new Date();
@@ -47,11 +47,11 @@ public class Main {
 
         while (Statistics.currTime.compareTo(endTime) < 0) {
 
-            System.out.println(resources.peek().pickup_time + " " + Statistics.currTime);
+            System.out.println(resources.peek().pickupTime + " " + Statistics.currTime);
 
-//            System.out.println("time comparision: " + resources.peek().pickup_time + " " + Statistics.currTime + " " + resources.peek().pickup_time.compareTo(Statistics.currTime));
-            while (!resources.isEmpty() && resources.peek().pickup_time.compareTo(Statistics.currTime) <= 0) {
-//                System.out.println("time comparision: " + resources.peek().pickup_time + " " + Statistics.currTime + " " + resources.peek().pickup_time.compareTo(Statistics.currTime));
+//            System.out.println("time comparision: " + resources.peek().pickupTime + " " + Statistics.currTime + " " + resources.peek().pickupTime.compareTo(Statistics.currTime));
+            while (!resources.isEmpty() && resources.peek().pickupTime.compareTo(Statistics.currTime) <= 0) {
+//                System.out.println("time comparision: " + resources.peek().pickupTime + " " + Statistics.currTime + " " + resources.peek().pickupTime.compareTo(Statistics.currTime));
                 curr_res.add(resources.poll());
             }
 
