@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class PreProcess {
+public class HexagonGeneration {
 
     static Map<String, Hexagon> readHexagonsFromCSV(String fileName) {
         Map<String, Hexagon> hexagon_map = new HashMap<>();

@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Agent {
 
     int agentId = -1;
@@ -39,7 +41,7 @@ public class Agent {
 //                System.out.println("incrementing search time");
                 Statistics.accumulatedSearchTime += Statistics.incrementalTimeWindow; // moving in search not in journey
             }
-        } else { // reached destination, stopped moving 
+        } else { // reached destination, stopped moving
             currentTravelTime = 0;
             status = 0;
             teleportAgentToDestinationHex();
@@ -47,6 +49,7 @@ public class Agent {
             AgentGeneration.freeAgentList.put(agentId, this);
 //            System.out.println("Added Agent back to Free List: " + agentId + " status:  " + status);
         }
+
     }
 
     void teleportAgentToDestinationHex() {
@@ -60,32 +63,3 @@ public class Agent {
         }
     }
 }
-
-//if (agent.status == 2) {
-//
-//    if (agent.currentTravelTime > statistics.incrementalTimeWindow) { // still searching
-//
-//        statistics.accumulatedSearchTime += statistics.incrementalTimeWindow;
-////                    agent.totalSearchingTime += statistics.incrementalTimeWindow;
-//        agent.currentTravelTime -= statistics.incrementalTimeWindow;
-//    } else {
-//
-////                    statistics.accumulatedSearchTime += agent.currentTravelTime;
-//
-//        agent.totalSearchingTime += agent.currentTravelTime;
-//
-//        agent.currentTravelTime = 0;
-//        agent.status = 0;
-////                    agent.destinationDistance = 0;
-//        agent.currentHexId = agent.destinationHexId;
-//
-//    }
-//    continue;
-//}
-//
-//if (agent.status == 1) {
-//
-//    // decrease journey time
-//    agent.decreaseJourneyTime();
-//    continue;
-//}

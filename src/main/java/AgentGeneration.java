@@ -3,14 +3,14 @@ import java.util.*;
 
 class AgentGeneration {
 
-    private int noOfAgents;
+    private double noOfAgents;
     private Date start_time;
 
     private Utilities helper = new Utilities();
 
     static Map<Integer, Agent> freeAgentList;
 
-    AgentGeneration(int noOfAgents, Date start_time) {
+    AgentGeneration(double noOfAgents, Date start_time) {
 
         this.noOfAgents = noOfAgents;
         this.start_time = start_time;
@@ -18,8 +18,9 @@ class AgentGeneration {
 
     Map<Integer, Agent> generateAgents(Map<String, Hexagon> hexagonMap) throws ParseException {
 
-        Map<Integer, Agent> agentList = new HashMap<>(noOfAgents);
-        freeAgentList = new HashMap<>(noOfAgents);
+        Map<Integer, Agent> agentList = new HashMap<>((int) noOfAgents);
+        freeAgentList = new HashMap<>((int) noOfAgents);
+
 
         List<String> hexagonList = new ArrayList<>(hexagonMap.keySet());
 

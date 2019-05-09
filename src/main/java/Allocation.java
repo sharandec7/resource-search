@@ -12,8 +12,6 @@ public class Allocation {
         int processedResources = 0;
         int K = 4;
 
-        System.out.println("Number of Free Cabs: " + AgentGeneration.freeAgentList.size());
-
         while (processedResources < totalResource) {
 
 //            System.out.println("count: "+count + " resource size: "+resources.size());
@@ -35,10 +33,6 @@ public class Allocation {
                 Statistics.totalInvalidResources += 1;
                 continue;
             }
-
-            int free_cabs = 0;
-
-//            System.out.println(resourceLat + " " + resourceLong);
 
             if (hexagonMap.get(resource.hexagon_id) == null) {
 //                System.out.println(resource.hexagon_id + " : " + hexagonMap.get(resource.hexagon_id));
@@ -71,11 +65,6 @@ public class Allocation {
                 kRingAgents.add(index, agentsAtK);
             }
 
-//            System.out.println("Number of agents in each Ring");
-//            for (List<Agent> agents : kRingAgents) {
-//                System.out.print(agents.size() + " : ");
-//            }
-
             int currentRing = 0;
             double timeToPickup = 2147483647;
             Agent closestAgent = null;
@@ -84,16 +73,16 @@ public class Allocation {
 
                 for (Agent agent : kRingAgents.get(currentRing)) {
 
-                    int size = kRingAgents.get(currentRing).size();
+//                    int size = kRingAgents.get(currentRing).size();
 
                     if (agent.status == 1) {
                         continue;
                     }
 
-                    double agentLat = agent.currentLocation.latitude;
-                    double agentLong = agent.currentLocation.longitude;
+                    double agentLat = Main.hexagonMap.get(agent.currentHexId).center.latitude;
+                    double agentLong = Main.hexagonMap.get(agent.currentHexId).center.longitude;
 
-                    if (!(agentLat != 0.0 && agentLong != 0.0)) {
+                    if ((agentLat == 0.0 && agentLong == 0.0)) {
                         System.out.println("Agent location undefined");
                         continue;
                     }
@@ -113,12 +102,6 @@ public class Allocation {
 
                 // check if agent can be assigned and assign agent and stop checking
                 if (closestAgent != null && (timeToPickup + resource.wait_time) <= MLT) {
-
-//                    for (Agent a : Main.hexagonMap.get(resource.hexagon_id).agentsPresent) {
-//                        System.out.println("Agent: " + a.agentId + " status: " + a.status);
-//                    }
-//
-//                    System.out.println(closestAgent.agentId + " : " + closestAgent.status);
 
                     assignAgentToResource(closestAgent, resource, timeToPickup);
                     break;
@@ -146,15 +129,11 @@ public class Allocation {
         closestAgent.status = 1;
         resource.assigned = true;
 
-//        System.out.println("Assigned agent:" + closestAgent.agentId + " for resource at: " + resource.hexagon_id);
-
-//        Statistics.accumulatedWaitTime += resource.wait_time;
-//        Statistics.accumulatedSearchTime += closestAgent.totalSearchingTime;
-//        closestAgent.totalSearchingTime = 0;
-
         String destination_hex_id = Utilities.getHexFromGeo(resource.drop_location.latitude, resource.drop_location.longitude);
 
-        double journeyTime = (Math.abs(resource.drop_time.getTime() - resource.pickup_time.getTime()) / Statistics.ONE_MINUTE_IN_MILLIS) + timeToPickup;
+//        double journeyTime = (Math.abs(resource.drop_time.getTime() - resource.pickup_time.getTime()) / Statistics.ONE_MINUTE_IN_MILLIS) + timeToPickup;
+        double journeyTime = Graphhopper.time(resource.pickup_location.latitude, resource.pickup_location.longitude, resource.drop_location.latitude, resource.drop_location.longitude) / Statistics.ONE_MINUTE_IN_MILLIS + timeToPickup;
+
 
         closestAgent.setDestination(destination_hex_id, 0, journeyTime, 1);
 
@@ -191,11 +170,25 @@ public class Allocation {
         System.out.println("Total Wait Time: " + Statistics.accumulatedWaitTime);
         System.out.println("Total Search Time: " + Statistics.accumulatedSearchTime);
 
-        System.out.println("Number of Free Cabs: " + AgentGeneration.freeAgentList.size());
+        Statistics.totalFreeAgents = AgentGeneration.freeAgentList.size();
 
-        System.out.println("Average Wait Time: " + (Statistics.accumulatedWaitTime / totalResources));
-        System.out.println("Average Search Time: " + (Statistics.accumulatedSearchTime / Statistics.totalAssignedAgents));
+        Statistics.averageWaitTime = (Statistics.accumulatedWaitTime / totalResources);
+        Statistics.averageSearchTime = (Statistics.accumulatedSearchTime / Statistics.totalAssignedAgents);
+        Statistics.droppedResourcePercentage = (double) Statistics.totalDroppedResources / (Statistics.totalAssignedAgents + Statistics.totalDroppedResources);
+        Statistics.droppedResourcePercentageB = (Statistics.totalDroppedResources + Statistics.totalWaitingResources) / totalResources;
+
+        System.out.println("Average Wait Time: " + Statistics.averageWaitTime);
+        System.out.println("Average Search Time: " + Statistics.averageSearchTime);
+        System.out.println("Dropped Resource Percentage: " + (Statistics.droppedResourcePercentage * 100));
+        System.out.println("Dropped Resource Percentage: " + (Statistics.droppedResourcePercentageB * 100) + '\n');
+
+        System.out.println("Number of Free Agents after allocation: " + Statistics.totalFreeAgents + '\n');
+
+        Statistics.averageSearchTimeList.add(Statistics.averageSearchTime);
+        Statistics.averageWaitTimeList.add(Statistics.averageWaitTime);
+        Statistics.totalFreeAgentsList.add(Statistics.totalFreeAgents);
+        Statistics.totalOccupiedAgentsList.add(Main.noOfCabs - Statistics.totalFreeAgents);
+        Statistics.expirationPercentageList.add(Statistics.droppedResourcePercentage * 100);
+        Statistics.expirationPercentageBList.add(Statistics.droppedResourcePercentageB * 100);
     }
-
-
 }

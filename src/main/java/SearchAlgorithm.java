@@ -1,3 +1,4 @@
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,41 +25,49 @@ class SearchAlgorithm {
             String agentHexId = agent.currentHexId;
             Hexagon agentHexagon = hexagonMap.get(agentHexId);
 
-            List<String> adjacentHexagons = agentHexagon.getNeighbours().get(0);
+            if (agentHexagon != null && agentHexagon.getNeighbours() != null) {
 
+                List<String> adjacentHexagons = agentHexagon.getNeighbours().get(0);
 
-            if (adjacentHexagons.size() == 6)
-                indexNeighbourArr = sixNeigbourIndices;
-            else
-                for (int l = 0; l < adjacentHexagons.size(); l++)
-                    indexNeighbourArr[l] = l;
+                if (adjacentHexagons.size() == 6)
+                    indexNeighbourArr = sixNeigbourIndices;
+                else
+                    for (int l = 0; l < adjacentHexagons.size(); l++)
+                        indexNeighbourArr[l] = l;
 
-            Map<String, Integer> expectedNumbers = new HashMap<>();
+                Map<String, Integer> expectedNumbers = new HashMap<>();
 
-            // can be updated to CLOCK TIME
-            String current_time = agentList.get(i).currentTime;
+                // can be updated to CLOCK TIME
+                String current_time = agentList.get(i).currentTime;
 
-            for (int j = 0; j < adjacentHexagons.size(); j++) {
-                String neighbour = adjacentHexagons.get(j);
-                if (hexagonMap.get(neighbour) != null && hexagonMap.get(neighbour).getWeightsByTime() != null) {
-                    expectedNumbers.put(neighbour,
-                            (hexagonMap.get(neighbour).getWeightsByTime().getOrDefault(current_time, 0)) + 1);
-                } else
-                    expectedNumbers.put(neighbour, 1);
-            }
+                try {
+                    current_time = Utilities.getTimeStamp(Statistics.currTime);
+                } catch (ParseException ex) {
 
-            int chosenIndex = RandomNumberGenerator.customizedRandom(indexNeighbourArr, expectedNumbers, adjacentHexagons);
-//            int chosenIndex = RandomNumberGenerator.normalRandom(adjacentHexagons.size() - 1);
+                }
 
-            String destination_hex_id = adjacentHexagons.get(chosenIndex);
-            if (hexagonMap.get(destination_hex_id) != null) {
+                for (int j = 0; j < adjacentHexagons.size(); j++) {
+                    String neighbour = adjacentHexagons.get(j);
+                    if (hexagonMap.get(neighbour) != null && hexagonMap.get(neighbour).getWeightsByTime() != null) {
+                        expectedNumbers.put(neighbour,
+                                (hexagonMap.get(neighbour).getWeightsByTime().getOrDefault(current_time, 0)) + 1);
+                    } else
+                        expectedNumbers.put(neighbour, 1);
+                }
 
-                Location destination = hexagonMap.get(adjacentHexagons.get(chosenIndex)).center;
+                int chosenIndex = AdjacentHexPicker.customizedRandom(indexNeighbourArr, expectedNumbers, adjacentHexagons);
+//            int chosenIndex = AdjacentHexPicker.normalRandom(adjacentHexagons.size() - 1);
 
-                int milliSeconds = Graphhopper.time(agentHexagon.center.latitude, agentHexagon.center.longitude, destination.latitude, destination.longitude);
+                String destination_hex_id = adjacentHexagons.get(chosenIndex);
+                if (hexagonMap.get(destination_hex_id) != null) {
 
-                agent.setDestination(destination_hex_id, 0, milliSeconds, 2);
+                    Location destination = hexagonMap.get(adjacentHexagons.get(chosenIndex)).center;
+
+                    double travelTime = Graphhopper.time(agentHexagon.center.latitude, agentHexagon.center.longitude, destination.latitude, destination.longitude) / Statistics.ONE_MINUTE_IN_MILLIS;
+
+                    agent.setDestination(destination_hex_id, 0, travelTime, 2);
 //                System.out.println("travel time: " + agent.currentTravelTime);
+                }
             }
         }
     }

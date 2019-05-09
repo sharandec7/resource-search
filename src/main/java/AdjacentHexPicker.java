@@ -58,7 +58,7 @@ import java.util.Map;
  *
  * @author Guibin Zhang <guibin.beijing@gmail.com>
  */
-public class RandomNumberGenerator {
+public class AdjacentHexPicker {
 
     /**
      * @param a

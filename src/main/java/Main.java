@@ -6,6 +6,7 @@ public class Main {
 
     static Map<String, Hexagon> hexagonMap;
     static Map<Integer, Agent> agentList;
+    static double noOfCabs = 5000.0;
 
     public static void main(String[] args) throws ParseException, IOException {
 
@@ -21,13 +22,12 @@ public class Main {
 
         // obtain Resource list - given CSV of rides between input startTime and endTime,
         ResourceAddition resourceAddition = new ResourceAddition();
-        Queue<Resource> resources = resourceAddition.readResourcesFromCSV("src/main/java/data/sample_data-full.csv");
+        Queue<Resource> resources = resourceAddition.readResourcesFromCSV("src/main/java/data/resource-data.csv");
 
-//        PreProcess loadHexagonData = new PreProcess();
-        hexagonMap = PreProcess.readHexagonsFromCSV("src/main/java/data/probability-updated.csv");
+//        HexagonGeneration loadHexagonData = new HexagonGeneration();
+        hexagonMap = HexagonGeneration.readHexagonsFromCSV("src/main/java/data/hexagon-data.csv");
 
         // Initialize cabs & obtain list of cabs
-        int noOfCabs = 5000;
         AgentGeneration agentGeneration = new AgentGeneration(noOfCabs, startTime);
 
         agentList = agentGeneration.generateAgents(hexagonMap);
@@ -47,8 +47,6 @@ public class Main {
 
         while (Statistics.currTime.compareTo(endTime) < 0) {
 
-            searchAlgorithm.provideSearchDirections(agentList, hexagonMap);
-
             System.out.println(resources.peek().pickup_time + " " + Statistics.currTime);
 
 //            System.out.println("time comparision: " + resources.peek().pickup_time + " " + Statistics.currTime + " " + resources.peek().pickup_time.compareTo(Statistics.currTime));
@@ -59,20 +57,27 @@ public class Main {
 
             System.out.println("No of resources:" + curr_res.size());
 
+            System.out.println("Number of Free Agents before allocation: " + AgentGeneration.freeAgentList.size() + '\n');
             curr_res = allocator.allocate(curr_res, hexagonMap, MLT);
+
+            searchAlgorithm.provideSearchDirections(agentList, hexagonMap);
+            System.out.println("Number of Free Agents after directions: " + AgentGeneration.freeAgentList.size() + '\n');
 
             Statistics.currTime = new Date(Statistics.currTime.getTime() + (int) (Statistics.incrementalTimeWindow * Statistics.ONE_MINUTE_IN_MILLIS));
         }
 
-        Date e_start = new Date();
-        System.out.println("SearchAlgorithm Start Time: " + e_start);
-        long diff = (e_start.getTime() - s_start.getTime());
-        System.out.println("SearchAlgorithm Run Time: " + (diff / Statistics.ONE_MINUTE_IN_MILLIS));
-    }
+        Date end_time = new Date();
+        System.out.println("SearchAlgorithm Start Time: " + end_time);
 
-    public void updateCurrentHex(Agent agent, double latitude, double longitude) throws IOException {
+        long diff = (end_time.getTime() - s_start.getTime());
+        System.out.println("SearchAlgorithm Run Time: " + (diff / Statistics.ONE_MINUTE_IN_MILLIS) + '\n');
 
-        agent.currentHexId = Utilities.getHexFromGeo(latitude, longitude);
+        System.out.println("Search_Time_List: " + Statistics.averageSearchTimeList + '\n');
+        System.out.println("Wait_Time_List: " + Statistics.averageWaitTimeList + '\n');
+        System.out.println("Free_Agents_List: " + Statistics.totalFreeAgentsList + '\n');
+        System.out.println("Occupied_Agents_List: " + Statistics.totalOccupiedAgentsList + '\n');
+        System.out.println("Expiration_List: " + Statistics.expirationPercentageList + '\n');
+        System.out.println("Expiration_B_List: " + Statistics.expirationPercentageBList + '\n');
     }
 }
 
