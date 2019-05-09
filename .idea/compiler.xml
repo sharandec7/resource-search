@@ -7,10 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="apple-resource-seach" />
+        <module name="Resource-Search" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="apple-resource-seach" target="1.8" />
+      <module name="Resource-Search" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

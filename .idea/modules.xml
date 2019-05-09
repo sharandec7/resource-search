@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/apple-resource-seach.iml" filepath="$PROJECT_DIR$/apple-resource-seach.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Resource-Search.iml" filepath="$PROJECT_DIR$/Resource-Search.iml" />
     </modules>
   </component>
 </project>
